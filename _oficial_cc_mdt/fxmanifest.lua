@@ -66,9 +66,20 @@ ignore_server_scripts {
 }
 
 watch_file {
-    '_server.lua', 
-    '_client.lua', 
-    'fxmanifest.lua', 
-    'framework/client/adapter.lua', 
-    'framework/server/adapter.lua', 
+    '_server.lua',
+    '_client.lua',
+    'fxmanifest.lua',
+    'framework/client/adapter.lua',
+    'framework/server/adapter.lua',
+
+    'web/build/index.html',
+    'web/build/assets/index.js',
+    'web/build/assets/index.css',
+    'web/build/assets/bg.png',
+    'web/build/assets/defaultAvatar.png',
+    'web/build/assets/layers.png',
+    'web/build/assets/layers-2x.png',
+    'web/build/assets/marker-icon.png',
+    'web/build/assets/policeLogo.png',
+    'web/build/assets/tiles/**/*.png'
 }
