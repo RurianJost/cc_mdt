@@ -258,7 +258,12 @@ function FineRecord:Delete(recordId)
         return false, LANGUAGE.FINE_RECORD_NOT_FOUND
     end
 
-    executeAdapter('deleteFineRecord', recordId)
+    local success = executeAdapter('deleteFineRecord', recordId)
+
+    if not success then
+        return false, LANGUAGE.FINE_RECORD_NOT_FOUND
+    end
+
     self.cache[recordId] = nil
 
     return true

@@ -18,6 +18,12 @@ return {
     ERROR_OCCURRENCE_NOT_FOUND = "Ocorrência não encontrada.",
     ERROR_NO_CHANGES_DETECTED = "Nenhuma alteração detectada.",
     ERROR_OCCURRENCE_UPDATE_DB = "Erro ao atualizar a ocorrência no banco de dados.",
+    ERROR_OCCURRENCE_DELETE_DB = "Erro ao excluir a ocorrência do banco de dados.",
+    ERROR_PRISON_UPDATE_DB = "Erro ao atualizar a prisão no banco de dados.",
+
+    VEHICLE_NOT_FOUND = "Veículo não encontrado.",
+    VEHICLE_FINE_INVALID = "Nenhuma multa válida foi informada.",
+    VEHICLE_FINE_APPLY_ERROR = "Não foi possível aplicar a multa ao proprietário do veículo.",
 
     PRISON_FINISH_SUCCESS = "Suspeito preso com sucesso.",
     PRISON_FINISH_SUCCESS_OFFLINE = "Suspeito preso com sucesso. O jogador receberá a pena ao entrar.",

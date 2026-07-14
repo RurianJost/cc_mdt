@@ -1,38 +1,40 @@
 
 import policeLogo from "@/assets/policeLogo.png";
-import { fetchNui } from "@/utils";
+import { useUserSession } from "@/providers";
 import { useEffect, useState } from "react";
 
-export function PageHeader({ title, description }: { title?: string, description?: string }) {
-    const [serverLogo, setServerLogo] = useState<string>("");
+const isImageValid = (image: string) => {
+    return new Promise<boolean>((resolve) => {
+        if (!image) {
+            resolve(false);
+            return;
+        }
 
-    const isImageValid = (image: string) => {
-        return new Promise<boolean>((resolve, reject) => {
-            const img = new Image();
-            img.src = image;
-            img.onload = () => {
-                resolve(true);
-            };
-        });
-    }
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = image;
+    });
+};
+
+export function PageHeader({ title, description }: { title?: string, description?: string }) {
+    const { data: user } = useUserSession();
+    const [serverLogo, setServerLogo] = useState<string>(policeLogo);
 
     useEffect(() => {
-        fetchNui<string>("getServerLogo", {}, "https://via.placeholder.com/150",)
-            .then(async (logo) => {
-                const isValid = await isImageValid(logo);
-                if (!isValid) {
-                    setServerLogo("");
-                } else {
-                    setServerLogo(policeLogo);
-                }
-            });
-    }, []);
+        let isActive = true;
 
-    //         RegisterNUICallback('getServerLogo', function (data, callBack)
-    //     callBack({
-    //             logoURL = GENERAL_CONFIG.SERVER_LOGO_URL
-    //         })
-    // end)
+        isImageValid(user?.panelLogoURL || "").then((isValid) => {
+            if (isActive) {
+                setServerLogo(isValid ? user?.panelLogoURL || policeLogo : policeLogo);
+            }
+        });
+
+        return () => {
+            isActive = false;
+        };
+    }, [user?.panelLogoURL]);
+
     return (
         <header className="flex items-center justify-between">
             <div className="flex-col flex gap-0.5">
@@ -41,6 +43,7 @@ export function PageHeader({ title, description }: { title?: string, description
             </div>
             {serverLogo && <img
                 src={serverLogo}
+                alt={user?.organization ? `Logo ${user.organization}` : "Logo da organização"}
                 className="size-[5.5rem] object-contain"
             />}
         </header>

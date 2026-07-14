@@ -7,6 +7,9 @@ export interface User {
     inService?: boolean
     serviceTime?: string
     canManageOfficers?: boolean
+    organization?: string
+    panelLogoURL?: string
+    panelPrimaryColor?: string
 }
 
 type Coords = {

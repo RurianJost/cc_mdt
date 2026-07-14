@@ -1,7 +1,3 @@
--- SetNuiFocus()
--- SendNUIMessage({})
--- SetNuiFocusKeepInput()
-
 function openInterface()
     apiServer.playerOpenInterface()
     
@@ -22,7 +18,7 @@ function closeInterface()
     })
 end
 
-function updateUserData(playerId, playerName, policeRank, inService, avatarURL, canManageOfficers)
+function updateUserData(playerId, playerName, policeRank, inService, avatarURL, canManageOfficers, policeOrganization, panelLogoURL, panelPrimaryColor)
     SendNUIMessage({
         action = 'updateUserData',
         data = {
@@ -31,7 +27,10 @@ function updateUserData(playerId, playerName, policeRank, inService, avatarURL, 
             policeRank = policeRank,
             avatarURL = avatarURL, 
             inService = inService, 
-            canManageOfficers = canManageOfficers
+            canManageOfficers = canManageOfficers,
+            organization = policeOrganization,
+            panelLogoURL = panelLogoURL,
+            panelPrimaryColor = panelPrimaryColor
         }
     })
 end
@@ -49,14 +48,12 @@ RegisterNUICallback('nuiLoaded', function(data, callBack)
 end)
 
 RegisterNUICallback('getServerLogo', function(data, callBack)
-    callBack({
-        logoURL = GENERAL_CONFIG.SERVER_LOGO_URL
-    })
+    callBack(GENERAL_CONFIG.SERVER_LOGO_URL or '')
 end)
 
 RegisterNUICallback('getUserData', function(data, callback)
     local playerEntries = apiServer.getPlayerData()
-    local playerId, playerName, policeRanking, inService, avatarURL, canManageOfficers = table.unpack(playerEntries)
+    local playerId, playerName, policeRanking, inService, avatarURL, canManageOfficers, policeOrganization, panelLogoURL, panelPrimaryColor = table.unpack(playerEntries)
 
     callback({
         id = playerId,
@@ -64,7 +61,10 @@ RegisterNUICallback('getUserData', function(data, callback)
         policeRank = policeRanking,
         avatarURL = avatarURL, 
         inService = inService, 
-        canManageOfficers = canManageOfficers
+        canManageOfficers = canManageOfficers,
+        organization = policeOrganization,
+        panelLogoURL = panelLogoURL,
+        panelPrimaryColor = panelPrimaryColor
     })
 end)
 

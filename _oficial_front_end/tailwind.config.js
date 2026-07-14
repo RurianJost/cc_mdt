@@ -14,7 +14,7 @@ export default {
                 text: {
                     secondary: "#B9BBBE"
                 },
-               "blue-custom": "#7289DA",
+                "blue-custom": "rgb(var(--panel-primary, 114 137 218) / <alpha-value>)",
                 "red-custom": "#ED4245",
             },
             animation: {

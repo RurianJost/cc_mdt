@@ -280,11 +280,24 @@ export default function Fines() {
 
   const confirmFine = async () => {
     try {
-      await fetchNui("applyVehicleFine", {
-        vehiclePlate: plate.trim(),
-        reason: reason.trim(),
-        fines: selectedFines?.map((f) => f.id),
-      });
+      const response = await fetchNui<{
+        success: boolean;
+        errorMessage?: string;
+      }>(
+        "applyVehicleFine",
+        {
+          vehiclePlate: plate.trim(),
+          reason: reason.trim(),
+          fines: selectedFines?.map((f) => f.id),
+        },
+        { success: true }
+      );
+
+      if (!response.success) {
+        toast(response.errorMessage || "Erro ao aplicar multa.");
+        return;
+      }
+
       toast("Multa aplicada com sucesso.");
       onBack(); // reset
     } catch {
@@ -366,7 +379,7 @@ export default function Fines() {
                   <button
                     onClick={() => void toVehiclePicture()}
                     type="button"
-                    className="h-[3.7rem] w-full rounded-lg bg-[#6F88D8] hover:bg-[#7B93E0] transition-colors text-white text-2xl font-bold"
+                    className="h-[3.7rem] w-full rounded-lg bg-blue-custom hover:bg-blue-custom/90 transition-colors text-white text-2xl font-bold"
                   >
                     Tirar foto
                   </button>
@@ -374,7 +387,7 @@ export default function Fines() {
                   <button
                     onClick={() => void handleConfirmEditImage()}
                     type="button"
-                    className="h-[3.7rem] w-full rounded-lg bg-[#6F88D8] hover:bg-[#7B93E0] transition-colors text-white text-2xl font-bold"
+                    className="h-[3.7rem] w-full rounded-lg bg-blue-custom hover:bg-blue-custom/90 transition-colors text-white text-2xl font-bold"
                   >
                     Confirmar corte
                   </button>

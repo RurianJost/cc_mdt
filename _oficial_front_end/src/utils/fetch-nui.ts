@@ -13,7 +13,6 @@ export async function fetchNui<T = any>(eventName: string, data?: any, mockData?
     body: JSON.stringify(data)
   };
 
-  console.log(`fetch ${eventName}`, data)
   if (isEnvBrowser())
     return new Promise((resolve) =>
       setTimeout(() =>
@@ -22,7 +21,7 @@ export async function fetchNui<T = any>(eventName: string, data?: any, mockData?
 
   const resourceName: string = window.GetParentResourceName
     ? window.GetParentResourceName()
-    : "gio_mdt";
+    : "cc_mdt";
 
 
   const resp: Response = await fetch(`https://${resourceName}/${eventName}`, options);

@@ -31,9 +31,17 @@ local function canSendCommunicationMessage(playerSource)
     return true
 end
 
-local function trimCommunicationsCache()
-    while #CommunicationsCache > COMMUNICATIONS_CACHE_LIMIT do
-        table.remove(CommunicationsCache, 1)
+local function getOrganizationCommunicationsCache(policeOrganization)
+    if not CommunicationsCache[policeOrganization] then
+        CommunicationsCache[policeOrganization] = {}
+    end
+
+    return CommunicationsCache[policeOrganization]
+end
+
+local function trimCommunicationsCache(organizationCache)
+    while #organizationCache > COMMUNICATIONS_CACHE_LIMIT do
+        table.remove(organizationCache, 1)
     end
 end
 
@@ -43,13 +51,13 @@ function api.getCommunications()
     end
 
     local playerSource = source
-    local isPolice = executeAdapter('isPlayerPolice', playerSource)
+    local isPolice, policeOrganization = executeAdapter('isPlayerPolice', playerSource)
 
-    if not isPolice then
+    if not isPolice or not policeOrganization then
         return {}
     end
 
-    return CommunicationsCache
+    return getOrganizationCommunicationsCache(policeOrganization)
 end
 
 function api.sendCommunicationMessage(messageContent)
@@ -58,9 +66,9 @@ function api.sendCommunicationMessage(messageContent)
     end
 
     local playerSource = source
-    local isPolice = executeAdapter('isPlayerPolice', playerSource)
+    local isPolice, policeOrganization = executeAdapter('isPlayerPolice', playerSource)
 
-    if not isPolice then
+    if not isPolice or not policeOrganization then
         return
     end
 
@@ -74,13 +82,19 @@ function api.sendCommunicationMessage(messageContent)
     local playerName = executeAdapter('getPlayerName', playerId)
     local avatarURL = ProfilePhotos:GetPhoto(playerId)
 
-    table.insert(CommunicationsCache, { playerId, playerName, messageContent, avatarURL })
+    local organizationCache = getOrganizationCommunicationsCache(policeOrganization)
 
-    trimCommunicationsCache()
+    table.insert(organizationCache, { playerId, playerName, messageContent, avatarURL })
+
+    trimCommunicationsCache(organizationCache)
 
     local openInterfaces = Interface:GetAllOpenInterfaces()
 
-    for targetSource, targetEntries in pairs(openInterfaces) do
-        TriggerClientEvent('cc_mdt:insertNewCommunicationMessage', targetSource, playerId, playerName, messageContent, avatarURL)
+    for targetSource in pairs(openInterfaces) do
+        local targetIsPolice, targetOrganization = executeAdapter('isPlayerPolice', targetSource)
+
+        if targetIsPolice and targetOrganization == policeOrganization then
+            TriggerClientEvent('cc_mdt:insertNewCommunicationMessage', targetSource, playerId, playerName, messageContent, avatarURL)
+        end
     end
 end

@@ -52,7 +52,8 @@ client_scripts {
 
 dependencies {
     '/onesync',
-    '/server:2843'
+    '/server:2843',
+    'PolyZone'
 }
 
 transfer {

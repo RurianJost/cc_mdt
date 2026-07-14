@@ -112,10 +112,6 @@ export default function Home(): JSX.Element {
     setCommunications(data ?? [])
   });
 
-  const markCds = (ticket: IReport) => {
-    void fetchNui("markReportCds", ticket);
-  };
-  
   const acceptReport = (ticket: IReport) => {
     if (!ticket) return;
     void fetchNui("acceptReport", { id: ticket.id });

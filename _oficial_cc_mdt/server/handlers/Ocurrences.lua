@@ -194,7 +194,11 @@ function Ocurrences:Delete(ocurrenceId)
         return false, LANGUAGE.ERROR_OCCURRENCE_NOT_FOUND
     end
 
-    executeAdapter('deleteOcurrence', ocurrenceId)
+    local success = executeAdapter('deleteOcurrence', ocurrenceId)
+
+    if not success then
+        return false, LANGUAGE.ERROR_OCCURRENCE_DELETE_DB
+    end
 
     self.cache[ocurrenceId] = nil
 

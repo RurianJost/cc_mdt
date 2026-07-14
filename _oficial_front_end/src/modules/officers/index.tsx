@@ -343,7 +343,11 @@ export default function Officers() {
                     <header className="w-full h-10 items-center flex justify-between gap-6">
                         <div className="flex items-center gap-4 flex-1 h-full min-w-0">
                             <div className="flex-1 min-w-0 h-full">
-                                <SearchInput value={search} onChange={changeSearchInput} />
+                                <SearchInput
+                                    value={search}
+                                    onChange={changeSearchInput}
+                                    placeholder="Busca por nome, passaporte ou patente;"
+                                />
                             </div>
                             {canManage && (
                                 <button

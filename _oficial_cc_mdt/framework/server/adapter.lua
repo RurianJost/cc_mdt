@@ -218,7 +218,7 @@ registerAdapter(
 registerAdapter(
     'deleteOcurrence',
     function(ocurrenceId)
-        executeAdapter('executeSync', 'DELETE FROM cc_mdt_ocurrences WHERE id = ?', { ocurrenceId })
+        return executeAdapter('executeSync', 'DELETE FROM cc_mdt_ocurrences WHERE id = ?', { ocurrenceId })
     end,
     { priority = FRAMEWORK_PRIORITY }
 )
@@ -263,8 +263,8 @@ registerAdapter(
 registerAdapter(
     'updateOcurrenceFinished',
     function(ocurrenceId, isFinished)
-        executeAdapter(
-            'executeAsync',
+        return executeAdapter(
+            'executeSync',
             'UPDATE cc_mdt_ocurrences SET is_finished = ? WHERE id = ?',
             { isFinished and 1 or 0, ocurrenceId }
         )
@@ -338,8 +338,8 @@ registerAdapter(
 registerAdapter(
     'upsertPrisonRecord',
     function(playerId, occurrenceId, officerId, sentenceValue, releaseTick, originalClothes)
-        executeAdapter(
-            'executeAsync',
+        return executeAdapter(
+            'executeSync',
             'INSERT INTO cc_mdt_player_prisons (player_id, occurrence_id, officer_id, sentence, release_at, original_clothes) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE occurrence_id = VALUES(occurrence_id), officer_id = VALUES(officer_id), sentence = VALUES(sentence), release_at = VALUES(release_at), original_clothes = VALUES(original_clothes)',
             { tostring(playerId), tonumber(occurrenceId) or occurrenceId, tostring(officerId or ''), tonumber(sentenceValue) or 0, tonumber(releaseTick) or 0, originalClothes }
         )
@@ -362,8 +362,8 @@ registerAdapter(
 registerAdapter(
     'deletePrisonRecord',
     function(playerId)
-        executeAdapter(
-            'executeAsync',
+        return executeAdapter(
+            'executeSync',
             'DELETE FROM cc_mdt_player_prisons WHERE player_id = ?',
             { tostring(playerId) }
         )
@@ -482,8 +482,8 @@ registerAdapter(
 registerAdapter(
     'deleteFineRecord',
     function(recordId)
-        executeAdapter(
-            'executeAsync',
+        return executeAdapter(
+            'executeSync',
             'DELETE FROM cc_mdt_fine_record WHERE id = ?',
             { tonumber(recordId) or recordId }
         )
@@ -757,6 +757,8 @@ registerAdapter(
     'givePlayerFine',
     function(playerId, fineAmount, issuerId, description)
         frameworkFunctions.serverSide.GiveFine(playerId, fineAmount)
+
+        return true
     end,
     { canExecute = getFrameworkChecker('creativeNW'), priority = FRAMEWORK_PRIORITY }
 )
@@ -958,6 +960,10 @@ registerAdapter(
     'getVehicleOwnerFromPlate',
     function(vehiclePlate)
         local vehicleData = exports['nation-garages']:getVehicleData(vehiclePlate)
+
+        if not vehicleData then
+            return
+        end
 
         return tonumber(vehicleData.user) or vehicleData.user
     end,
@@ -1187,11 +1193,11 @@ registerAdapter(
 
         local normalized = tostring(search):upper():gsub('%s+', ''):gsub('%-', '')
 
-        if #normalized ~= 8 then
+        if (#normalized ~= 7 and #normalized ~= 8) or not normalized:match('^[%u%d]+$') then
             return false
         end
 
-        return normalized:match('^%d%d%u%u%u%d%d%d$') ~= nil
+        return normalized:match('%u') ~= nil
     end,
     { priority = FRAMEWORK_PRIORITY }
 )

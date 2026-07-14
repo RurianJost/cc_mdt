@@ -198,7 +198,7 @@ export function RegisterModal({
                             <button
                                 type="button"
                                 onClick={onSave}
-                                className="mt-2.5 h-12 w-full rounded-lg bg-[#6F88D8] hover:bg-[#7B93E0] transition-colors text-white text-2xl font-bold"
+                                className="mt-2.5 h-12 w-full rounded-lg bg-blue-custom hover:bg-blue-custom/90 transition-colors text-white text-2xl font-bold"
                             >
                                 Salvar
                             </button>
@@ -253,7 +253,7 @@ export function RegisterModal({
                                 <button
                                     type="button"
                                     onClick={onConfirmFinish}
-                                    className="mt-2.5 h-[3.7rem] w-full rounded-lg bg-[#6F88D8] hover:bg-[#7B93E0] transition-colors text-white text-2xl font-bold"
+                                    className="mt-2.5 h-[3.7rem] w-full rounded-lg bg-blue-custom hover:bg-blue-custom/90 transition-colors text-white text-2xl font-bold"
                                 >
                                     Prender
                                 </button>

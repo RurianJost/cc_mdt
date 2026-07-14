@@ -226,7 +226,6 @@ export default function ToRegister() {
     };
 
     useEffect(() => {
-        console.log(selectedAggravants, selectedAttenuants)
     }, [selectedAggravants, selectedAttenuants]);
 
     const formSteps = ["Acusado", "Crimes", "Atenuantes", "Resumo"];
@@ -249,7 +248,6 @@ export default function ToRegister() {
            setSearchParams(params);
            if (!isEnvBrowser()) return;
            setTimeout(() => {
-               console.debug("debug")
                debugData([
                    {
                        "action": "setPictureForm",
@@ -359,7 +357,7 @@ export default function ToRegister() {
                                 <button
                                     onClick={toPicture}
                                     type="button"
-                                    className="mt-2.5 h-[3.7rem] w-full rounded-lg bg-[#6F88D8] hover:bg-[#7B93E0] transition-colors text-white text-2xl font-bold"
+                                    className="mt-2.5 h-[3.7rem] w-full rounded-lg bg-blue-custom hover:bg-blue-custom/90 transition-colors text-white text-2xl font-bold"
                                 >
                                     Tirar foto
                                 </button>
@@ -407,7 +405,7 @@ export default function ToRegister() {
                                 <button
                                     onClick={photoURL ? handleConfirmEditImage : toPicture}
                                     type="button"
-                                    className="mt-2.5 h-[3.7rem] w-full rounded-lg bg-[#6F88D8] hover:bg-[#7B93E0] transition-colors text-white text-2xl font-bold"
+                                    className="mt-2.5 h-[3.7rem] w-full rounded-lg bg-blue-custom hover:bg-blue-custom/90 transition-colors text-white text-2xl font-bold"
                                 >
                                     {photoURL ? "Confirmar corte" : "Tirar foto"}
                                 </button>

@@ -1,5 +1,4 @@
 function showSentence(sentence)
-    print('Showing sentence:', sentence)
     SendNUIMessage({
         action = 'showSentence',
         data = {

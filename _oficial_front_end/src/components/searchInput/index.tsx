@@ -1,6 +1,16 @@
 import { ChangeEventHandler } from "react";
 
-export function SearchInput({ value, onChange }: { value: string, onChange: ChangeEventHandler<HTMLInputElement> }) {
+type SearchInputProps = {
+    value: string;
+    onChange: ChangeEventHandler<HTMLInputElement>;
+    placeholder?: string;
+};
+
+export function SearchInput({
+    value,
+    onChange,
+    placeholder = "Busca por passaporte ou nº do boletim;"
+}: SearchInputProps) {
     return (
         <div className="flex-1 h-full bg-black/20 relative flex  items-center rounded-lg">
             <input
@@ -9,7 +19,7 @@ export function SearchInput({ value, onChange }: { value: string, onChange: Chan
                 value={value}
                 onChange={onChange}
                 maxLength={255}
-                placeholder="Busca por passaporte ou nº do boletim;"
+                placeholder={placeholder}
             />
 
             <svg className="size-6 absolute right-4" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">

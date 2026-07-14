@@ -31,30 +31,6 @@ function RegisterNUICallback(name, handler)
     return _RegisterNUICallback(name, interfaceQueue(handler))
 end 
 
--- _RegisterNUICallback = RegisterNUICallback 
--- function RegisterNUICallback(name, handler)
---     local _handler = function(a, b)
---         print('[CALLBACK]', name, json.encode(a, { indent = true }))
-        
---         local _b = function(c)
---             print(json.encode(c, { indent = true }))
-            
---             return b(c)
---         end 
-
---         return handler(a, _b)
---     end 
-
---     return _RegisterNUICallback(name, _handler)
--- end
-
--- _SendNUIMessage = SendNUIMessage
--- function SendNUIMessage(message)
---     print('[MESSAGE]', json.encode(message, { indent = true }))
-    
---     return _SendNUIMessage(message)
--- end
-
 executeAdapter('registerHandler', function()
     local canOpenPainel = apiServer.canOpenPainel()
 

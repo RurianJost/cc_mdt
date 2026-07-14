@@ -76,10 +76,8 @@ function Interface:OnResourceStart()
                     formattedEntries[#formattedEntries + 1] = { player.id, playerName, playerCoords, ORG_CONFIG.MAP_COLOR }
                 end
 
-                if #formattedEntries > 0 then
-                    for playerSource in pairs(self.cache) do
-                        TriggerClientEvent('cc_mdt:updateOfficersOnMap', playerSource, formattedEntries)
-                    end
+                for playerSource in pairs(self.cache) do
+                    TriggerClientEvent('cc_mdt:updateOfficersOnMap', playerSource, formattedEntries)
                 end
             end
 

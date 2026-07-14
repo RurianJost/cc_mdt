@@ -11,11 +11,12 @@ import { DashboardIcon, DataLineIcon, HandCuffsIcon, JamIcon, UsersIcon, CarIcon
 import Cropper from "react-easy-crop";
 import type { Area, MediaSize, Size } from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
+import { toast } from "sonner";
 
 const BookIcon = () => {
     return (
         <svg className="size-[1.5rem]" width="18" height="23" viewBox="0 0 18 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 19.7143V3.28571C0 2.41429 0.344804 1.57855 0.958559 0.962363C1.57231 0.346173 2.40475 0 3.27273 0H14.7273C15.5953 0 16.4277 0.346173 17.0414 0.962363C17.6552 1.57855 18 2.41429 18 3.28571V18.2768C18 18.658 17.8491 19.0237 17.5806 19.2933C17.3121 19.5628 16.9479 19.7143 16.5682 19.7143H1.63636C1.63636 20.15 1.80877 20.5679 2.11564 20.876C2.42252 21.1841 2.83874 21.3571 3.27273 21.3571H17.1818C17.3988 21.3571 17.6069 21.4437 17.7604 21.5977C17.9138 21.7518 18 21.9607 18 22.1786C18 22.3964 17.9138 22.6054 17.7604 22.7594C17.6069 22.9135 17.3988 23 17.1818 23H3.27273C2.40475 23 1.57231 22.6538 0.958559 22.0376C0.344804 21.4214 0 20.5857 0 19.7143ZM4.70455 3.28571C4.3248 3.28571 3.96061 3.43717 3.6921 3.70675C3.42358 3.97633 3.27273 4.34197 3.27273 4.72321V5.95536C3.27273 6.74886 3.91418 7.39286 4.70455 7.39286H13.2955C13.6752 7.39286 14.0394 7.24141 14.3079 6.97182C14.5764 6.70224 14.7273 6.33661 14.7273 5.95536V4.72321C14.7273 4.34197 14.5764 3.97633 14.3079 3.70675C14.0394 3.43717 13.6752 3.28571 13.2955 3.28571H4.70455Z" fill="white" fill-opacity="0.4" />
+            <path d="M0 19.7143V3.28571C0 2.41429 0.344804 1.57855 0.958559 0.962363C1.57231 0.346173 2.40475 0 3.27273 0H14.7273C15.5953 0 16.4277 0.346173 17.0414 0.962363C17.6552 1.57855 18 2.41429 18 3.28571V18.2768C18 18.658 17.8491 19.0237 17.5806 19.2933C17.3121 19.5628 16.9479 19.7143 16.5682 19.7143H1.63636C1.63636 20.15 1.80877 20.5679 2.11564 20.876C2.42252 21.1841 2.83874 21.3571 3.27273 21.3571H17.1818C17.3988 21.3571 17.6069 21.4437 17.7604 21.5977C17.9138 21.7518 18 21.9607 18 22.1786C18 22.3964 17.9138 22.6054 17.7604 22.7594C17.6069 22.9135 17.3988 23 17.1818 23H3.27273C2.40475 23 1.57231 22.6538 0.958559 22.0376C0.344804 21.4214 0 20.5857 0 19.7143ZM4.70455 3.28571C4.3248 3.28571 3.96061 3.43717 3.6921 3.70675C3.42358 3.97633 3.27273 4.34197 3.27273 4.72321V5.95536C3.27273 6.74886 3.91418 7.39286 4.70455 7.39286H13.2955C13.6752 7.39286 14.0394 7.24141 14.3079 6.97182C14.5764 6.70224 14.7273 6.33661 14.7273 5.95536V4.72321C14.7273 4.34197 14.5764 3.97633 14.3079 3.70675C14.0394 3.43717 13.6752 3.28571 13.2955 3.28571H4.70455Z" fill="white" fillOpacity="0.4" />
         </svg>
     )
 }
@@ -35,19 +36,23 @@ export function SideBar() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [avatarUrlInput, setAvatarUrlInput] = useState("");
+    const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
     const [isSavingAvatar, setIsSavingAvatar] = useState(false);
 
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
     const [cropSessionId, setCropSessionId] = useState(0);
+    const [avatarCropSize, setAvatarCropSize] = useState<Size>();
     const croppedAreaPixelsRef = useRef<Area | null>(null);
     const mediaSizeRef = useRef<MediaSize | null>(null);
     const cropSizeRef = useRef<Size | null>(null);
     const cropperImageRef = useRef<HTMLImageElement | null>(null);
+    const cropContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setAvatarUrlInput(data?.avatarURL ?? "");
+        setAvatarLoadFailed(false);
     }, [data?.avatarURL]);
 
     const syncCropPixels = useCallback((_: Area, pixels: Area) => {
@@ -123,6 +128,8 @@ export function SideBar() {
             await fetchNui("setAvatarURL", { avatarURL: croppedImage });
             setAvatarUrlInput(croppedImage);
             setInChangeAvatar(false);
+        } catch (error) {
+            toast.error((error as Error).message || "Não foi possível salvar a foto.");
         } finally {
             setIsSavingAvatar(false);
         }
@@ -191,6 +198,49 @@ export function SideBar() {
         resetImageCropOptions();
     }, [inChangeAvatar, resetImageCropOptions]);
 
+    useEffect(() => {
+        if (!inChangeAvatar) {
+            setAvatarCropSize(undefined);
+            return;
+        }
+
+        let firstFrame = 0;
+        let secondFrame = 0;
+
+        const measureCropArea = () => {
+            const container = cropContainerRef.current;
+            if (!container) return;
+
+            const rect = container.getBoundingClientRect();
+            const side = Math.floor(Math.min(rect.width, rect.height));
+            if (side <= 0) return;
+
+            setAvatarCropSize((current) => {
+                if (current?.width === side && current.height === side) return current;
+                return { width: side, height: side };
+            });
+        };
+
+        firstFrame = window.requestAnimationFrame(() => {
+            measureCropArea();
+            secondFrame = window.requestAnimationFrame(measureCropArea);
+        });
+
+        const resizeObserver = typeof ResizeObserver !== "undefined"
+            ? new ResizeObserver(measureCropArea)
+            : null;
+
+        if (cropContainerRef.current) resizeObserver?.observe(cropContainerRef.current);
+        window.addEventListener("resize", measureCropArea);
+
+        return () => {
+            window.cancelAnimationFrame(firstFrame);
+            window.cancelAnimationFrame(secondFrame);
+            resizeObserver?.disconnect();
+            window.removeEventListener("resize", measureCropArea);
+        };
+    }, [inChangeAvatar]);
+
     const tabs: ISidebarTabs = {
         "Geral": [
             {
@@ -224,7 +274,7 @@ export function SideBar() {
                 Icon: <JamIcon />
             },
         ],
-        "Adminstração": [
+        "Administração": [
             {
                 content: "Gerenciar Oficiais",
                 pathName: "/officers",
@@ -250,13 +300,15 @@ export function SideBar() {
                         <div ref={wrapperContainerRef} className="!p-8 default-box w-[47.7rem] gap-4 flex-col flex">
                             <h2 className="text-3xl font-bold">Alterar foto de perfil</h2>
 
-                            <div className="size-full h-[18rem] relative bg-white/10 rounded-lg overflow-hidden">
+                            <div ref={cropContainerRef} className="w-full h-[18rem] relative bg-white/10 rounded-lg overflow-hidden">
                                 <Cropper
                                     key={cropSessionId}
                                     image={avatarUrlInput || data?.avatarURL || defaultAvatar}
                                     crop={crop}
                                     zoom={zoom}
                                     aspect={1}
+                                    cropSize={avatarCropSize}
+                                    objectFit="contain"
                                     onCropChange={setCrop}
                                     onZoomChange={setZoom}
                                     onCropComplete={syncCropPixels}
@@ -271,9 +323,29 @@ export function SideBar() {
                                         cropperImageRef.current = ref.current;
                                     }}
                                     mediaProps={{ crossOrigin: "anonymous" }}
+                                    style={{
+                                        containerStyle: {
+                                            cursor: isSavingAvatar ? "default" : "grab",
+                                            touchAction: "none",
+                                        },
+                                        cropAreaStyle: {
+                                            pointerEvents: "none",
+                                            border: "2px solid rgba(255, 255, 255, 0.8)",
+                                        },
+                                    }}
+                                    classes={{
+                                        cropAreaClassName: "mdt-avatar-crop-area",
+                                    }}
+                                    cropperProps={{
+                                        "aria-label": "Arraste a foto para ajustar o enquadramento",
+                                    }}
                                     showGrid={true}
                                 />
                             </div>
+
+                            <p className="text-sm text-text-secondary">
+                                Arraste a foto para os lados até ajustar o enquadramento.
+                            </p>
 
                             {/* <div className="w-full flex items-center gap-4">
                                 <span className="text-text-secondary text-sm min-w-14">Zoom</span>
@@ -334,7 +406,9 @@ export function SideBar() {
                                 setInChangeAvatar(true);
                             }}
                             className="size-[8rem] pointer-events-auto transition-opacity group-hover:opacity-65 cursor-pointer aspect-square rounded"
-                            src={data?.avatarURL ?? defaultAvatar}
+                            src={avatarLoadFailed ? defaultAvatar : data?.avatarURL || defaultAvatar}
+                            alt="Foto do oficial"
+                            onError={() => setAvatarLoadFailed(true)}
                         />
 
 

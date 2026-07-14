@@ -1,6 +1,10 @@
 return {
     ['22 BPM'] = {
         MAP_COLOR = '#114ed1',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#114ed1'
+        },
         PERMISSIONS = {
             ROLE = '22bpm',
             TO_FIRE = '22bpm-3', 
@@ -12,6 +16,10 @@ return {
     }, 
     ['20 BPM'] = {
         MAP_COLOR = '#36ad2b',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#36ad2b'
+        },
         PERMISSIONS = {
             ROLE = '20bpm',
             TO_FIRE = '20bpm-3', 
@@ -23,6 +31,10 @@ return {
     }, 
     ['16 BPM'] = {
         MAP_COLOR = '#c5d81e',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#c5d81e'
+        },
         PERMISSIONS = {
             ROLE = '16bpm',
             TO_FIRE = '16bpm-3', 
@@ -34,6 +46,10 @@ return {
     }, 
     ['GAM'] = {
         MAP_COLOR = '#c91392',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#c91392'
+        },
         PERMISSIONS = {
             ROLE = 'gam',
             TO_FIRE = 'gam-3', 
@@ -45,6 +61,10 @@ return {
     }, 
     ['BPRV'] = {
         MAP_COLOR = '#319fad',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#319fad'
+        },
         PERMISSIONS = {
             ROLE = 'bprv',
             TO_FIRE = 'bprv-3', 
@@ -56,6 +76,10 @@ return {
     }, 
     ['BOPE'] = {
         MAP_COLOR = '#c04f74',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#c04f74'
+        },
         PERMISSIONS = {
             ROLE = 'bope',
             TO_FIRE = 'bope-3', 
@@ -67,6 +91,10 @@ return {
     }, 
     ['Choque'] = {
         MAP_COLOR = '#35f335',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#35f335'
+        },
         PERMISSIONS = {
             ROLE = 'choque',
             TO_FIRE = 'choque-3', 
@@ -78,6 +106,10 @@ return {
     }, 
     ['RECOM PMERJ'] = {
         MAP_COLOR = '#420328',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#420328'
+        },
         PERMISSIONS = {
             ROLE = 'recompmerj',
             TO_FIRE = 'recompmerj-3', 
@@ -89,6 +121,10 @@ return {
     }, 
     ['Cidpol'] = {
         MAP_COLOR = '#974d08',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#974d08'
+        },
         PERMISSIONS = {
             ROLE = 'cidpol',
             TO_FIRE = 'cidpol-3', 
@@ -100,6 +136,10 @@ return {
     }, 
     ['Core'] = {
         MAP_COLOR = '#573183',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#573183'
+        },
         PERMISSIONS = {
             ROLE = 'core',
             TO_FIRE = 'core-3', 
@@ -111,6 +151,10 @@ return {
     }, 
     ['Exército'] = {
         MAP_COLOR = '#e66f6f',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#e66f6f'
+        },
         PERMISSIONS = {
             ROLE = 'exercito',
             TO_FIRE = 'exercito-3', 
@@ -122,6 +166,10 @@ return {
     }, 
     ['Policia Rodoviária Federal'] = {
         MAP_COLOR = '#9e0fc2',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#9e0fc2'
+        },
         PERMISSIONS = {
             ROLE = 'prf',
             TO_FIRE = 'prf-3', 
@@ -133,6 +181,10 @@ return {
     }, 
     ['Policia Federal'] = {
         MAP_COLOR = '#00d9ff',
+        PANEL = {
+            LOGO_URL = '',
+            PRIMARY_COLOR = '#00d9ff'
+        },
         PERMISSIONS = {
             ROLE = 'pf',
             TO_FIRE = 'pf-3', 

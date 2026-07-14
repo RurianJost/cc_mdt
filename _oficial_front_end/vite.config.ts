@@ -13,7 +13,7 @@ export default defineConfig({
     react()
   ],
   build: {
-    outDir: 'build',
+    outDir: path.resolve(__dirname, '../_oficial_cc_mdt/web/build'),
     emptyOutDir: true,
     assetsInlineLimit: 0,
   }

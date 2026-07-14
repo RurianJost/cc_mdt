@@ -31,9 +31,17 @@ local function canSendChatMessage(playerSource)
     return true
 end
 
-local function trimChatCache()
-    while #ChatCache > CHAT_CACHE_LIMIT do
-        table.remove(ChatCache, 1)
+local function getOrganizationChatCache(policeOrganization)
+    if not ChatCache[policeOrganization] then
+        ChatCache[policeOrganization] = {}
+    end
+
+    return ChatCache[policeOrganization]
+end
+
+local function trimChatCache(organizationCache)
+    while #organizationCache > CHAT_CACHE_LIMIT do
+        table.remove(organizationCache, 1)
     end
 end
 
@@ -43,13 +51,13 @@ function api.getChatMessages()
     end
 
     local playerSource = source
-    local isPolice = executeAdapter('isPlayerPolice', playerSource)
+    local isPolice, policeOrganization = executeAdapter('isPlayerPolice', playerSource)
 
-    if not isPolice then
+    if not isPolice or not policeOrganization then
         return {}
     end
 
-    return ChatCache
+    return getOrganizationChatCache(policeOrganization)
 end
 
 function api.sendMessageInChat(messageContent)
@@ -58,9 +66,9 @@ function api.sendMessageInChat(messageContent)
     end
 
     local playerSource = source
-    local isPolice = executeAdapter('isPlayerPolice', playerSource)
+    local isPolice, policeOrganization = executeAdapter('isPlayerPolice', playerSource)
 
-    if not isPolice then
+    if not isPolice or not policeOrganization then
         return
     end
 
@@ -74,13 +82,19 @@ function api.sendMessageInChat(messageContent)
     local playerName = executeAdapter('getPlayerName', playerId)
     local avatarURL = ProfilePhotos:GetPhoto(playerId)
 
-    table.insert(ChatCache, { playerId, playerName, messageContent, avatarURL })
+    local organizationCache = getOrganizationChatCache(policeOrganization)
 
-    trimChatCache()
+    table.insert(organizationCache, { playerId, playerName, messageContent, avatarURL })
+
+    trimChatCache(organizationCache)
 
     local openInterfaces = Interface:GetAllOpenInterfaces()
 
-    for targetSource, targetEntries in pairs(openInterfaces) do
-        TriggerClientEvent('cc_mdt:insertNewChatMessage', targetSource, playerId, playerName, messageContent, avatarURL)
+    for targetSource in pairs(openInterfaces) do
+        local targetIsPolice, targetOrganization = executeAdapter('isPlayerPolice', targetSource)
+
+        if targetIsPolice and targetOrganization == policeOrganization then
+            TriggerClientEvent('cc_mdt:insertNewChatMessage', targetSource, playerId, playerName, messageContent, avatarURL)
+        end
     end
 end

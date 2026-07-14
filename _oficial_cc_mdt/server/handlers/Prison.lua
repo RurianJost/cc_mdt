@@ -210,7 +210,7 @@ function Prison:Create(playerId, occurrenceId, sentenceMonths, officerId, player
         end
     end
 
-    executeAdapter(
+    local persisted = executeAdapter(
         'upsertPrisonRecord',
         normalizedPlayerId,
         normalizedOccurrenceId,
@@ -219,6 +219,10 @@ function Prison:Create(playerId, occurrenceId, sentenceMonths, officerId, player
         remainingSeconds,
         originalClothes and json.encode(originalClothes) or nil
     )
+
+    if not persisted then
+        return false, LANGUAGE.ERROR_PRISON_UPDATE_DB
+    end
 
     self.cache[normalizedPlayerId] = {
         playerId = normalizedPlayerId,
@@ -417,6 +421,12 @@ function Prison:Release(playerId, shouldRestoreClothes)
         return false
     end
 
+    local deleted = executeAdapter('deletePrisonRecord', normalizedPlayerId)
+
+    if not deleted then
+        return false, LANGUAGE.ERROR_PRISON_UPDATE_DB
+    end
+
     local playerSource = executeAdapter('getSourceFromPlayerId', normalizedPlayerId)
 
     if playerSource then
@@ -428,8 +438,6 @@ function Prison:Release(playerId, shouldRestoreClothes)
 
         executeAdapter('notifyPlayer', playerSource, LANGUAGE.PRISON_RELEASED)
     end
-
-    executeAdapter('deletePrisonRecord', normalizedPlayerId)
 
     self.cache[normalizedPlayerId] = nil
 

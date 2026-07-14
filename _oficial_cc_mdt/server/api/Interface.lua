@@ -1,3 +1,36 @@
+local DEFAULT_PANEL_PRIMARY_COLOR = '#7289DA'
+
+local function getNonEmptyString(value)
+    if type(value) ~= 'string' or value == '' then
+        return nil
+    end
+
+    return value
+end
+
+local function getValidPanelColor(value)
+    if type(value) == 'string' and value:match('^#%x%x%x%x%x%x$') then
+        return value
+    end
+
+    return nil
+end
+
+local function getOrganizationPanelConfig(policeOrganization)
+    local generalPanel = GENERAL_CONFIG.PANEL or {}
+    local organizationConfig = ORGANIZATIONS_CONFIG[policeOrganization] or {}
+    local organizationPanel = organizationConfig.PANEL or {}
+    local logoURL = getNonEmptyString(organizationPanel.LOGO_URL)
+        or getNonEmptyString(generalPanel.LOGO_URL)
+        or getNonEmptyString(GENERAL_CONFIG.SERVER_LOGO_URL)
+        or ''
+    local primaryColor = getValidPanelColor(organizationPanel.PRIMARY_COLOR)
+        or getValidPanelColor(generalPanel.PRIMARY_COLOR)
+        or DEFAULT_PANEL_PRIMARY_COLOR
+
+    return logoURL, primaryColor
+end
+
 function api.canOpenPainel()
     if not __isAuth__ then
         return
@@ -59,8 +92,9 @@ function api.updateAvatarURL(avatarURL)
         local policeRanking = executeAdapter('getPlayerPoliceRanking', playerId)    
         local inService = executeAdapter('isPlayerInService', playerSource)
         local canManageOfficers = executeAdapter('canManageOfficers', playerSource, policeOrganization)
+        local panelLogoURL, panelPrimaryColor = getOrganizationPanelConfig(policeOrganization)
 
-        TriggerClientEvent('cc_mdt:updateUserData', playerSource, playerId, playerName, policeRanking, inService, avatarURL, canManageOfficers)
+        TriggerClientEvent('cc_mdt:updateUserData', playerSource, playerId, playerName, policeRanking, inService, avatarURL, canManageOfficers, policeOrganization, panelLogoURL, panelPrimaryColor)
     end
 end
 
@@ -82,6 +116,7 @@ function api.getPlayerData()
     local inService = executeAdapter('isPlayerInService', playerSource)
     local avatarURL = ProfilePhotos:GetPhoto(playerId)
     local canManageOfficers = executeAdapter('canManageOfficers', playerSource, policeOrganization)
+    local panelLogoURL, panelPrimaryColor = getOrganizationPanelConfig(policeOrganization)
 
     return {
         playerId,
@@ -89,7 +124,10 @@ function api.getPlayerData()
         policeRanking,
         inService, 
         avatarURL, 
-        canManageOfficers
+        canManageOfficers,
+        policeOrganization,
+        panelLogoURL,
+        panelPrimaryColor
     }
 end
 

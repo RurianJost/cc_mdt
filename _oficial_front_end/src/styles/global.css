@@ -4,6 +4,7 @@
 
 :root {
     font-size: 62.5%;
+    --panel-primary: 114 137 218;
 }
 
 * {
@@ -153,7 +154,7 @@ img {
     height: 1.9rem;
     margin-top: -0.425rem; /* centers thumb on 1.05rem track */
     border-radius: 9999px;
-    background: #6F88D8;
+    background: rgb(var(--panel-primary));
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
     border: 2px solid rgba(255, 255, 255, 0.12);
 }
@@ -168,16 +169,45 @@ img {
 .mdt-range::-moz-range-progress {
     height: 1.05rem;
     border-radius: 9999px;
-    background: rgba(111, 136, 216, 0.85);
+    background: rgb(var(--panel-primary) / 0.85);
 }
 
 .mdt-range::-moz-range-thumb {
     width: 1.9rem;
     height: 1.9rem;
     border-radius: 9999px;
-    background: #6F88D8;
+    background: rgb(var(--panel-primary));
     border: 2px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* A grade nativa do cropper pode não desenhar os pseudo-elementos no CEF do FiveM. */
+.mdt-avatar-crop-area {
+    pointer-events: none !important;
+}
+
+.mdt-avatar-crop-area::before,
+.mdt-avatar-crop-area::after {
+    content: "" !important;
+    position: absolute !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    pointer-events: none !important;
+    z-index: 1;
+}
+
+.mdt-avatar-crop-area::before {
+    inset: 0 33.333% !important;
+    border: 0 !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.65) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.65) !important;
+}
+
+.mdt-avatar-crop-area::after {
+    inset: 33.333% 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.65) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.65) !important;
 }
 
 @media (max-width: 1480px) {

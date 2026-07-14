@@ -100,62 +100,74 @@ end
 
 function api.applyVehicleFine(vehiclePlate, fines)
     if not __isAuth__ then
-        return
+        return false, LANGUAGE.COMMON_REQUIRED_PARAMS
     end
 
     local playerSource = source
     local isPolice = executeAdapter('isPlayerPolice', playerSource)
 
     if not isPolice then
-        return
+        return false, LANGUAGE.COMMON_REQUIRED_PARAMS
     end
 
-    if type(fines) ~= 'table' then
-        return
+    if type(vehiclePlate) ~= 'string' or vehiclePlate == '' or type(fines) ~= 'table' then
+        return false, LANGUAGE.COMMON_REQUIRED_PARAMS
     end
 
     local vehicleOwnerId = executeAdapter('getVehicleOwnerFromPlate', vehiclePlate)
 
-    if vehicleOwnerId then
-        local officerId = executeAdapter('getPlayerId', playerSource)
-
-        if not officerId then
-            return
-        end
-
-        local normalizedPlate = tostring(vehiclePlate):upper():gsub('%s+', ''):gsub('%-', '')
-        
-        local fineEntries = {}
-        local totalFineValue = 0
-        local totalFineDescriptions = {}
-
-        for _, fineId in ipairs(fines) do
-            local fineData = LEGISLATION_CONFIG.TRAFFIC_TICKETS[fineId]
-
-            if fineData then
-                local fineValue = tonumber(fineData.FINE) or 0
-                local fineDescription = ('%s - $%s'):format(fineData.NAME, fineValue)
-
-                totalFineValue = totalFineValue + fineValue
-                totalFineDescriptions[#totalFineDescriptions + 1] = fineDescription
-                fineEntries[#fineEntries + 1] = {
-                    fineId = fineId,
-                    description = fineDescription,
-                    value = fineValue
-                }
-            end
-        end
-
-        if #fineEntries == 0 then
-            return
-        end
-
-        for _, fineEntry in ipairs(fineEntries) do
-            executeAdapter('givePlayerFine', vehicleOwnerId, fineEntry.value, officerId, fineEntry.description)
-        end
-
-        FineRecord:CreateMany('VEHICLE', normalizedPlate, fineEntries, officerId)
+    if not vehicleOwnerId then
+        return false, LANGUAGE.VEHICLE_NOT_FOUND
     end
+
+    local officerId = executeAdapter('getPlayerId', playerSource)
+
+    if not officerId then
+        return false, LANGUAGE.COMMON_REQUIRED_PARAMS
+    end
+
+    local normalizedPlate = tostring(vehiclePlate):upper():gsub('%s+', ''):gsub('%-', '')
+    local fineEntries = {}
+
+    for _, fineId in ipairs(fines) do
+        local normalizedFineId = tonumber(fineId)
+        local fineData = normalizedFineId and LEGISLATION_CONFIG.TRAFFIC_TICKETS[normalizedFineId]
+
+        if fineData then
+            local fineValue = tonumber(fineData.FINE) or 0
+            local fineDescription = ('%s - $%s'):format(fineData.NAME, fineValue)
+
+            fineEntries[#fineEntries + 1] = {
+                fineId = normalizedFineId,
+                description = fineDescription,
+                value = fineValue
+            }
+        end
+    end
+
+    if #fineEntries == 0 then
+        return false, LANGUAGE.VEHICLE_FINE_INVALID
+    end
+
+    local recordStatus, recordResult = FineRecord:CreateMany('VEHICLE', normalizedPlate, fineEntries, officerId)
+
+    if not recordStatus then
+        return false, recordResult
+    end
+
+    for _, fineEntry in ipairs(fineEntries) do
+        local applied = executeAdapter('givePlayerFine', vehicleOwnerId, fineEntry.value, officerId, fineEntry.description)
+
+        if not applied then
+            for _, recordId in ipairs(recordResult or {}) do
+                FineRecord:Delete(recordId)
+            end
+
+            return false, LANGUAGE.VEHICLE_FINE_APPLY_ERROR
+        end
+    end
+
+    return true
 end
 
 function api.getOccurrenceFromSearch(search)
@@ -184,11 +196,16 @@ function api.getOccurrenceFromSearch(search)
 
         local vehicleModel = executeAdapter('getVehicleModelFromPlate', vehiclePlate)
         local isVehicleDetained = executeAdapter('isVehicleDetained', vehiclePlate, vehicleModel, ownerId)
-        local vehicleImageURL = GENERAL_CONFIG.VEHICLES_URL:format(vehicleModel)
+        local formattedVehicleModel = vehicleModel or LANGUAGE.COMMON_UNDEFINED
+        local vehicleImageURL = ''
+
+        if vehicleModel and type(GENERAL_CONFIG.VEHICLES_URL) == 'string' and GENERAL_CONFIG.VEHICLES_URL ~= '' then
+            vehicleImageURL = GENERAL_CONFIG.VEHICLES_URL:format(tostring(vehicleModel))
+        end
 
         local resultEntries = {
             search,
-            vehicleModel,
+            formattedVehicleModel,
             isVehicleDetained,
             vehicleImageURL,
             ownerId,
@@ -338,17 +355,23 @@ function api.finishRegister(ocurrenceId)
     local suspectSource = executeAdapter('getSourceFromPlayerId', suspectId)
     local officerId = executeAdapter('getPlayerId', playerSource)
 
+    local updated = executeAdapter('updateOcurrenceFinished', ocurrenceId, true)
+
+    if not updated then
+        return false, LANGUAGE.ERROR_OCCURRENCE_UPDATE_DB
+    end
+
     local status, errorMessage = Prison:Create(suspectId, ocurrenceId, prisonSentence, officerId, suspectSource)
 
     if not status then
+        executeAdapter('updateOcurrenceFinished', ocurrenceId, false)
+
         return false, errorMessage
     end
 
     occurrence.isFinished = true
     addInventoryMissionMdtPrison(playerSource)
     
-    executeAdapter('updateOcurrenceFinished', ocurrenceId, true)
-
     if suspectSource then
         return true, LANGUAGE.PRISON_FINISH_SUCCESS
     end

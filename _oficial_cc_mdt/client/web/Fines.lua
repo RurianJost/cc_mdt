@@ -16,7 +16,10 @@ RegisterNUICallback('getFines', function(data, callback)
 end)
 
 RegisterNUICallback('applyVehicleFine', function(data, callback)
-    apiServer.applyVehicleFine(data.vehiclePlate, data.fines)
+    local status, errorMessage = apiServer.applyVehicleFine(data.vehiclePlate, data.fines)
 
-    callback({})
+    callback({
+        success = status == true,
+        errorMessage = errorMessage
+    })
 end)

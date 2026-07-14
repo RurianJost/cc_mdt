@@ -1,4 +1,3 @@
-/** Retângulo em pixels no bitmap natural (ex.: `croppedAreaPixels` do react-easy-crop). */
 export type NaturalPixelCrop = {
     x: number;
     y: number;
@@ -6,96 +5,149 @@ export type NaturalPixelCrop = {
     height: number;
 };
 
+function isLocalImageSource(src: string): boolean {
+    return src.startsWith("data:") || src.startsWith("blob:");
+}
+
 export function loadImageForCrop(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = "anonymous";
+
+        if (!isLocalImageSource(src)) {
+            try {
+                const url = new URL(src, window.location.href);
+
+                if (url.origin !== window.location.origin) {
+                    img.crossOrigin = "anonymous";
+                }
+            } catch {
+                // O carregamento abaixo retornará o erro apropriado.
+            }
+        }
+
         img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error("Falha ao carregar a imagem"));
+        img.onerror = () => reject(new Error("Falha ao carregar a imagem."));
         img.src = src;
     });
 }
 
-/** `drawImage` + `toDataURL` só funcionam se a imagem não for cross-origin “sujo” (sem CORS). */
 function isImageSafeForCanvas(img: HTMLImageElement): boolean {
     const src = img.currentSrc || img.src || "";
-    if (src.startsWith("blob:") || src.startsWith("data:")) {
-        return true;
-    }
+    if (isLocalImageSource(src)) return true;
+
     try {
-        const u = new URL(src, window.location.href);
-        if (u.origin === window.location.origin) {
-            return true;
-        }
+        const url = new URL(src, window.location.href);
+        if (url.origin === window.location.origin) return true;
     } catch {
         return false;
     }
+
     return img.crossOrigin === "anonymous" || img.crossOrigin === "use-credentials";
 }
 
-/**
- * Recorta a região `crop` (coordenadas na imagem natural) e devolve JPEG em data URL.
- * Não altere canvas.width/height após criar o contexto sem redesenhar — defina antes do `getContext`.
- */
 export async function getCroppedImageDataUrl(
     imageSrc: string,
     crop: NaturalPixelCrop,
-    options?: { imageElement?: HTMLImageElement | null; jpegQuality?: number }
+    options?: {
+        imageElement?: HTMLImageElement | null;
+        jpegQuality?: number;
+        maxOutputSize?: number;
+    }
 ): Promise<string> {
-    const jpegQuality = options?.jpegQuality ?? 0.92;
-    const el = options?.imageElement;
-    const useEl =
-        el &&
-        el.complete &&
-        el.naturalWidth > 0 &&
-        isImageSafeForCanvas(el);
-    const image = useEl ? el : await loadImageForCrop(imageSrc);
+    const jpegQuality = options?.jpegQuality ?? 0.88;
+    const maxOutputSize = Math.max(64, Math.round(options?.maxOutputSize ?? 512));
+    const cropperImage = options?.imageElement;
+    const shouldReloadImage = isLocalImageSource(imageSrc);
+    const canUseCropperImage =
+        !shouldReloadImage &&
+        cropperImage &&
+        cropperImage.complete &&
+        cropperImage.naturalWidth > 0 &&
+        isImageSafeForCanvas(cropperImage);
+    const image = canUseCropperImage ? cropperImage : await loadImageForCrop(imageSrc);
+
     try {
         await image.decode();
     } catch {
-        /* opcional */
+        // onload já confirmou que a imagem está disponível.
     }
 
-    const nw = image.naturalWidth;
-    const nh = image.naturalHeight;
-    if (!nw || !nh) {
-        throw new Error("Imagem sem dimensões válidas");
+    const naturalWidth = image.naturalWidth;
+    const naturalHeight = image.naturalHeight;
+    if (!naturalWidth || !naturalHeight) {
+        throw new Error("Imagem sem dimensões válidas.");
     }
 
-    let sx = Math.round(crop.x);
-    let sy = Math.round(crop.y);
-    let sw = Math.round(crop.width);
-    let sh = Math.round(crop.height);
+    let sourceX = Math.max(0, Math.round(crop.x));
+    let sourceY = Math.max(0, Math.round(crop.y));
+    let sourceWidth = Math.max(1, Math.round(crop.width));
+    let sourceHeight = Math.max(1, Math.round(crop.height));
 
-    sx = Math.max(0, sx);
-    sy = Math.max(0, sy);
-    sw = Math.max(1, sw);
-    sh = Math.max(1, sh);
+    sourceX = Math.min(sourceX, naturalWidth - 1);
+    sourceY = Math.min(sourceY, naturalHeight - 1);
+    sourceWidth = Math.min(sourceWidth, naturalWidth - sourceX);
+    sourceHeight = Math.min(sourceHeight, naturalHeight - sourceY);
 
-    sx = Math.min(sx, nw - 1);
-    sy = Math.min(sy, nh - 1);
-    sw = Math.min(sw, nw - sx);
-    sh = Math.min(sh, nh - sy);
-
-    if (sw < 1 || sh < 1) {
-        throw new Error("Região de corte inválida");
+    if (sourceWidth < 1 || sourceHeight < 1) {
+        throw new Error("Região de corte inválida.");
     }
 
-    const canvas = document.createElement("canvas");
-    canvas.width = nw;
-    canvas.height = nh;
+    const outputSize = Math.max(1, Math.min(maxOutputSize, sourceWidth, sourceHeight));
+    const cropCanvas = document.createElement("canvas");
+    cropCanvas.width = outputSize;
+    cropCanvas.height = outputSize;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-        throw new Error("Canvas 2D indisponível");
+    const cropContext = cropCanvas.getContext("2d", { willReadFrequently: true });
+    if (!cropContext) {
+        throw new Error("Canvas 2D indisponível.");
     }
 
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    cropContext.imageSmoothingEnabled = true;
+    cropContext.imageSmoothingQuality = "high";
+    cropContext.clearRect(0, 0, outputSize, outputSize);
+    cropContext.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        outputSize,
+        outputSize
+    );
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0,nw, nh);
-    ctx.drawImage(image, sx, sy, sw, sh, 0, 0, nw, nh);
+    const pixelData = cropContext.getImageData(0, 0, outputSize, outputSize).data;
+    let hasVisiblePixel = false;
 
-    return canvas.toDataURL("image/jpeg", jpegQuality);
+    for (let index = 3; index < pixelData.length; index += 64) {
+        if (pixelData[index] > 0) {
+            hasVisiblePixel = true;
+            break;
+        }
+    }
+
+    if (!hasVisiblePixel) {
+        throw new Error("A captura não pôde ser processada. Tire uma nova foto.");
+    }
+
+    const outputCanvas = document.createElement("canvas");
+    outputCanvas.width = outputSize;
+    outputCanvas.height = outputSize;
+
+    const outputContext = outputCanvas.getContext("2d");
+    if (!outputContext) {
+        throw new Error("Canvas 2D indisponível.");
+    }
+
+    outputContext.fillStyle = "#ffffff";
+    outputContext.fillRect(0, 0, outputSize, outputSize);
+    outputContext.drawImage(cropCanvas, 0, 0);
+
+    const result = outputCanvas.toDataURL("image/jpeg", jpegQuality);
+    if (!result || result === "data:,") {
+        throw new Error("Não foi possível gerar a imagem cortada.");
+    }
+
+    return result;
 }
