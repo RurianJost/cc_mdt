@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    font-size: 62.5%;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: 0;
+
+    -webkit-font-smoothing: antialiased;
+
+    list-style: none;
+    border: none;
+    resize: none;
+    user-select: none;
+
+    color: rgb(255, 255, 255);
+    font-family: "Roboto", serif;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+body,
+#root {
+    width: 100vw;
+    height: 100vh;
+
+    display: grid;
+    place-items: center;
+
+    overflow: hidden;
+
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+
+button,
+[data-type="button"],
+.fullCenter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+button,
+[data-type="button"] {
+    cursor: pointer;
+}
+
+img {
+    pointer-events: none;
+}
+
+.leaflet-left .leaflet-control {
+    margin: 1rem !important;
+}
+
+.leaflet-control-zoom a span,
+.leaflet-control-zoom a span:hover {
+    color: #111 !important;
+}
+
+.leaflet-touch .leaflet-bar a {
+    @apply !size-[3rem] !text-5xl;
+}
+
+.leaflet-bar a span,
+.leaflet-bar a span:hover {
+    color: #111 !important;
+}
+
+.default-box {
+    @apply bg-[#2F3136] rounded-2xl p-4;
+}
+
+.custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 0.4rem;
+    background-color: transparent;
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: all 0.2s ease;
+}
+
+.custom-checkbox:hover {
+    border-color: white;
+}
+
+.custom-checkbox:checked {
+    background-color: white;
+    border-color: white;
+}
+
+.custom-checkbox:checked::after {
+    content: "";
+    width: .4rem;
+    height: .8rem;
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.custom-checkbox:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+/* Range slider (dark track + blue fill) */
+.mdt-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1.05rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    outline: none;
+}
+
+.mdt-range:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* WebKit track */
+.mdt-range::-webkit-slider-runnable-track {
+    height: 1.05rem;
+    border-radius: 9999px;
+    background: transparent;
+}
+
+/* WebKit thumb */
+.mdt-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.9rem;
+    height: 1.9rem;
+    margin-top: -0.425rem; /* centers thumb on 1.05rem track */
+    border-radius: 9999px;
+    background: #6F88D8;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Firefox track/fill */
+.mdt-range::-moz-range-track {
+    height: 1.05rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.mdt-range::-moz-range-progress {
+    height: 1.05rem;
+    border-radius: 9999px;
+    background: rgba(111, 136, 216, 0.85);
+}
+
+.mdt-range::-moz-range-thumb {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 9999px;
+    background: #6F88D8;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 1480px) {
+    :root {
+        font-size: .55vw;
+    }
+}
+/* 
+
+@media (max-width: 480px) {
+    :root {
+        font-size: 50%;
+    }
+} */
