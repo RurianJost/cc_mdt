@@ -1,7 +1,7 @@
-apiClient = Tunnel.getInterface('RKG_Store')
+apiClient = Tunnel.getInterface('cc_mdt')
 
 api = {}
-Tunnel.bindInterface('RKG_Store', api)
+Tunnel.bindInterface('cc_mdt', api)
 
 if not LPH_OBFUSCATED then
     __isAuth__ = true

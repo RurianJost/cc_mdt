@@ -7,5 +7,9 @@ Citizen.CreateThread(function()
 
     Citizen.Wait(1000)
 
-    Ocurrences:Setup()
+    Ocurrences:OnResourceStart()
+    FineRecord:OnResourceStart()
+    Prison:OnResourceStart()
+    Interface:OnResourceStart()
+    ProfilePhotos:Setup()
 end)

@@ -1,3 +1,3 @@
 Citizen.CreateThread(function()
-    TriggerServerEvent('RKG_Store:onPlayerSpawn')
+    TriggerServerEvent('cc_mdt:onPlayerSpawn')
 end)

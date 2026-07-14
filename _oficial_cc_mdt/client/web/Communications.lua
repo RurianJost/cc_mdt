@@ -1,4 +1,4 @@
-RegisterNUICallback('sendChatMessage', function(data, callback)
+RegisterNUICallback('sendCommunicationMessage', function(data, callback)
     local messageContent = type(data) == 'table' and data.message or nil
 
     if type(messageContent) ~= 'string' or messageContent == '' then
@@ -7,14 +7,14 @@ RegisterNUICallback('sendChatMessage', function(data, callback)
         return
     end
 
-    apiServer.sendMessageInChat(messageContent)
+    apiServer.sendCommunicationMessage(messageContent)
 
     callback('Ok')
 end)
 
-RegisterNUICallback('getAllChatMessages', function(data, callback)
+RegisterNUICallback('getAllCommunications', function(data, callback)
     local formattedChat = {}
-    local chatEntries = apiServer.getChatMessages()
+    local chatEntries = apiServer.getCommunications()
 
     for index, entries in ipairs(chatEntries) do
         local playerId, playerName, messageContent, avatarURL = table.unpack(entries)
@@ -30,9 +30,9 @@ RegisterNUICallback('getAllChatMessages', function(data, callback)
     callback(formattedChat)
 end)
 
-function insertNewChatMessage(playerId, playerName, messageContent, avatarURL)
+function insertNewCommunicationMessage(playerId, playerName, messageContent, avatarURL)
     SendNUIMessage({
-        action = 'newChatMessage',
+        action = 'newCommunicationMessage',
         data = {
             id = playerId,
             author = playerName,
@@ -42,25 +42,25 @@ function insertNewChatMessage(playerId, playerName, messageContent, avatarURL)
     })
 end
 
-function updateAllChatMessages(chatEntries)
+function updateAllCommunications(communicationEntries)
     local formattedChat = {}
 
-    for index, entries in ipairs(chatEntries) do
+    for index, entries in ipairs(communicationEntries) do
         local playerId, playerName, messageContent, avatarURL = table.unpack(entries)
 
         formattedChat[index] = {
             id = playerId,
             author = playerName, 
-            message = messageContent, 
+            message = messageContent,
             avatarURL = avatarURL
         }
     end
 
     SendNUIMessage({
-        action = 'updateAllChatMessages',
+        action = 'updateAllCommunications',
         data = formattedChat
     })
 end
 
-RegisterNetEvent('cc_mdt:insertNewChatMessage', insertNewChatMessage)
-RegisterNetEvent('cc_mdt:updateAllChatMessages', updateAllChatMessages)
+RegisterNetEvent('cc_mdt:insertNewCommunicationMessage', insertNewCommunicationMessage)
+RegisterNetEvent('cc_mdt:updateAllCommunications', updateAllCommunications)

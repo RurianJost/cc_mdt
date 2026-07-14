@@ -4,12 +4,15 @@ game 'gta5'
 ui_page 'web/build/index.html' 
 ui_page_preload 'yes' 
 
+client_script '@PolyZone/client.lua'
+
 files {
     'config/shared/*.lua',
     'config/client/*.lua',
 
     'framework/client/*.*',
 
+	'stream/*.ytd',
 	'web/build/*.*',
     'web/build/**/*.*', 
     'web/build/**/**/*.*', 

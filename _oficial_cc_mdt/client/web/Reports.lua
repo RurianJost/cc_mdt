@@ -1,4 +1,3 @@
--- Usar isso aqui para criar um comando? Tipo /call
 function insertNewReport(reportEntries)
     local reportId, createdBy, description, handledBy, reportCoords = table.unpack(reportEntries)
 
@@ -8,7 +7,7 @@ function insertNewReport(reportEntries)
             id = reportId,
             createdBy = createdBy,
             description = description,
-            handledBy = handledBy,
+            handledBy = handledBy or LANGUAGE.REPORT_NOT_ANSWERED,
             coords = {
                 x = reportCoords[1],
                 y = reportCoords[2],
@@ -28,7 +27,7 @@ function updateAllReports(reportEntries)
             id = reportId,
             createdBy = createdBy,
             description = description,
-            handledBy = handledBy,
+            handledBy = handledBy or LANGUAGE.REPORT_NOT_ANSWERED,
             coords = {
                 x = reportCoords[1],
                 y = reportCoords[2],
@@ -43,21 +42,13 @@ function updateAllReports(reportEntries)
     })
 end
 
-RegisterNUICallback('markReportCds', function(data, callback)
-    local reportCoords = apiServer.getReportCoordsById(data.id)
-
-    if reportCoords then
-        executeAdapter('createReportBlipLocation', {
-            x = reportCoords[1],
-            y = reportCoords[2],
-            z = reportCoords[3]
-        })
-    end
+RegisterNUICallback('acceptReport', function(data, callback)
+    apiServer.acceptReport(data.id)
 
     callback({})
 end)
 
-RegisterNUICallback('getAllReports', function(data, callback)
+RegisterNUICallback('getAllReports', function(_, callback)
     local formattedReports = {}
     local reportEntries = apiServer.getServerReports()
 
@@ -81,3 +72,7 @@ RegisterNUICallback('getAllReports', function(data, callback)
 end)
 
 RegisterNetEvent('cc_mdt:insertNewReport', insertNewReport)
+RegisterNetEvent('cc_mdt:updateAllReports', updateAllReports)
+RegisterNetEvent('cc_mdt:acceptReport', function(reportId, createdBy, description, coords)
+    executeAdapter('onPlayerAcceptReport', reportId, createdBy, description, coords)
+end)

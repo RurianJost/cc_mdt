@@ -1,18 +1,17 @@
 RegisterNUICallback('getOccurrenceData', function(data, callback)
-    local userData, vehiclesData, occurrencesData
-    local resultType, resultEntries = apiServer.getOccurrenceFromSearch(data.search)
+    local userData, vehiclesData, occurrencesData, vehicleFines
+    local resultType, resultEntries, occurrencesEntries = apiServer.getOccurrenceFromSearch(data.search)
 
     if resultType == 'NOT_FOUND' then
         callback({
-            errorMessage = 'Nenhum resultado encontrado para a busca realizada.',
+            errorMessage = LANGUAGE.OCCURRENCE_SEARCH_NOT_FOUND,
         })
 
         return
     end
 
     if resultType == 'USER' then
-        local userEntries, occurrencesEntries = table.unpack(resultEntries)
-        local playerId, playerName, playerAvatarURL, playerAge, playerIdentity, playerFineValue, playerStatus = table.unpack(userEntries)
+        local playerId, playerName, playerAvatarURL, playerAge, playerIdentity, playerFineValue = table.unpack(resultEntries)
 
         userData = {
             id = playerId,
@@ -20,8 +19,7 @@ RegisterNUICallback('getOccurrenceData', function(data, callback)
             age = playerAge,
             identity = playerIdentity,
             avatarURL = playerAvatarURL, 
-            fineValue = playerFineValue,
-            status = playerStatus,
+            fineValue = playerFineValue
         }
 
         occurrencesData = {}
@@ -54,10 +52,29 @@ RegisterNUICallback('getOccurrenceData', function(data, callback)
                 name = ownerName
             }
         }
+
+        vehicleFines = {}
+
+        for index, entries in ipairs(occurrencesEntries) do
+            local fineId, fineDescription, createdAt, officerName, officerId, fineValue, fineStatus = table.unpack(entries)
+
+            table.insert(vehicleFines, {
+                id = fineId,
+                title = fineDescription,
+                createdAt = createdAt,
+                officer = {
+                    name = officerName,
+                    id = officerId,
+                },
+                fine = fineValue,
+                status = fineStatus
+            })
+        end
     end
 
     callback({
         user = userData, 
+        fines = vehicleFines, 
         vehicle = vehiclesData, 
         occurrences = occurrencesData
     })

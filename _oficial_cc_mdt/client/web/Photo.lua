@@ -1,14 +1,71 @@
-RegisterNUICallback('initPhotoPicture', function(data, callback)
-    SetTimeout(3000, function()
-        setPictureForm('https://cdn.discordapp.com/attachments/920863698535448603/1491517085942157474/PitBull_Sorrindo_500x500.png?ex=69d7fb08&is=69d6a988&hm=f3d37f79c05665a0b8c997fec2412917d7d017fd13667929a491ac032cb09d05&')
+RegisterNUICallback('setAvatarURL', function(data, callback)
+    apiServer.updateAvatarURL(data.avatarURL)
+
+    callback({})
+end)
+
+RegisterNUICallback('initAvatarPicture', function(data, callback)
+    SetNuiFocus(false, false)
+    SetCursorLocation(0.5, 0.5)
+
+    Citizen.CreateThread(function()
+        local photoURL = executeAdapter('takePhoto', true, true)
+                
+        setAvatarPicture(photoURL)
     end)
-    
+
+    callback({})
+end)
+
+function setAvatarPicture(avatarURL)
+    SetNuiFocus(true, true)
+    SetCursorLocation(0.5, 0.5)
+    SendNUIMessage({
+        action = 'setAvatarPictureForm',
+        data = avatarURL
+    })
+end
+
+RegisterNUICallback('initPhotoPicture', function(data, callback)
+    SetNuiFocus(false, false)
+    SetCursorLocation(0.5, 0.5)
+
+    Citizen.CreateThread(function()
+        local photoURL = executeAdapter('takePhoto')
+
+        setPictureForm(photoURL)
+    end)
+
     callback({})
 end)
 
 function setPictureForm(photoURL)
+    SetNuiFocus(true, true)
+    SetCursorLocation(0.5, 0.5)
     SendNUIMessage({
         action = 'setPictureForm',
+        data = photoURL
+    })
+end
+
+RegisterNUICallback('initVehiclePicture', function(data, callback)
+    SetNuiFocus(false, false)
+    SetCursorLocation(0.5, 0.5)
+
+    Citizen.CreateThread(function()
+        local photoURL = executeAdapter('takePhoto')
+
+        setVehiclePictureForm(photoURL)
+    end)
+
+    callback({})
+end)
+
+function setVehiclePictureForm(photoURL)
+    SetNuiFocus(true, true)
+    SetCursorLocation(0.5, 0.5)
+    SendNUIMessage({
+        action = 'setVehiclePictureForm',
         data = photoURL
     })
 end

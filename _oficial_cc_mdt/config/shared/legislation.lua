@@ -81,5 +81,15 @@ return {
         [3] = { NAME = 'Colaboração com a investigação', PERCENTAGE = 20 },
         [4] = { NAME = 'Bom comportamento durante a abordagem', PERCENTAGE = 10 },
         [5] = { NAME = 'Tentativa sem consumação do crime', PERCENTAGE = 20 }
+    }, 
+    TRAFFIC_TICKETS = {
+        [1] = { NAME = 'Excesso de Velocidade', ARTICLE = 'Art. 218, CTB', FINE = 5000 },
+        [2] = { NAME = 'Avanço de Sinal Vermelho', ARTICLE = 'Art. 208, CTB', FINE = 7000 },
+        [3] = { NAME = 'Estacionamento Proibido', ARTICLE = 'Art. 181, CTB', FINE = 3000 },
+        [4] = { NAME = 'Uso de Celular ao Volante', ARTICLE = 'Art. 252, CTB', FINE = 4000 },
+        [5] = { NAME = 'Dirigir Sem Cinto de Segurança', ARTICLE = 'Art. 167, CTB', FINE = 3500 }
+    },
+    SENTENCE = {
+        MAXIMUM = 100
     }
 }

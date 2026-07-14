@@ -89,11 +89,26 @@ function Tunnel.bindInterface(interfaceName, interfaceTable)
 	RegisterLocalEvent(interfaceName .. ':tunnel_req')
 	AddEventHandler(interfaceName .. ':tunnel_req', function(methodName, args, identifier, requestId)
 		local sourcePlayer = source
+		requestId = tonumber(requestId) or -1
+		identifier = tostring(identifier or '')
+
 		local method = interfaceTable[methodName]
 		local returnValues = {}
 
+		if type(args) ~= 'table' then
+			args = {}
+		end
+
 		if type(method) == 'function' then
-			returnValues = { method(table.unpack(args, 1, #args)) }
+			local success, result = xpcall(function()
+				return { method(table.unpack(args, 1, #args)) }
+			end, debug.traceback)
+
+			if success then
+				returnValues = result
+			else
+				print(('[%s] Tunnel error on %s: %s'):format(GetCurrentResourceName(), tostring(methodName), tostring(result)))
+			end
 		end
 
 		if requestId >= 0 then

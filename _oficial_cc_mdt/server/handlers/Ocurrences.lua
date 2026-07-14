@@ -2,8 +2,28 @@ _G.Ocurrences = {
     cache = {}
 }
 
-function Ocurrences:Setup()
+function Ocurrences:OnResourceStart()
     self.cache = executeAdapter('getDatabaseOcurrences')
+end
+
+local function normalizeIdList(values, allowedValues)
+    local normalized = {}
+    local added = {}
+
+    if type(values) ~= 'table' then
+        return normalized
+    end
+
+    for _, value in ipairs(values) do
+        local id = tonumber(value)
+
+        if id and allowedValues[id] and not added[id] then
+            normalized[#normalized + 1] = id
+            added[id] = true
+        end
+    end
+
+    return normalized
 end
 
 local function calculateOcurrencePayload(crimes, attenuants, aggravants)
@@ -14,7 +34,7 @@ local function calculateOcurrencePayload(crimes, attenuants, aggravants)
 
     for _, crimeId in ipairs(crimes) do
         local crime = LEGISLATION_CONFIG.PENAL_CODES[crimeId]
-        
+
         if crime then
             totalFine = totalFine + crime.FINE
             totalSentence = totalSentence + crime.SENTENCE
@@ -31,7 +51,7 @@ local function calculateOcurrencePayload(crimes, attenuants, aggravants)
 
     for _, aggravantId in ipairs(aggravants) do
         local factor = LEGISLATION_CONFIG.AGGRAVATING_FACTORS[aggravantId]
-       
+
         if factor then
             aggravantPercentage = aggravantPercentage + factor.PERCENTAGE
         end
@@ -57,68 +77,43 @@ local function calculateOcurrencePayload(crimes, attenuants, aggravants)
     return {
         fine = totalFine,
         bail = totalBail,
-        isBailable = isBailable, 
+        isBailable = isBailable,
         sentence = totalSentence
     }
 end
 
-function Ocurrences:GetLastId(officerId, suspectId, suspectDescription)
-    local row = executeAdapter('executeSync',
-        'SELECT id FROM cc_mdt_ocurrences WHERE officer_id = ? AND suspect_id = ? AND suspect_description = ? ORDER BY id DESC LIMIT 1',
-        { officerId, suspectId, suspectDescription }
-    )
-
-    if not row or not row[1] then
-        return nil
-    end
-
-    return row[1].id
-end
-
 function Ocurrences:Create(officerId, suspectId, suspectDescription, crimes, attenuants, aggravants, photoURL)
     if not suspectId or not crimes then
-        return false, 'Parâmetros obrigatórios ausentes.'
+        return false, LANGUAGE.ERROR_REQUIRED_PARAMS
+    end
+
+    crimes = normalizeIdList(crimes, LEGISLATION_CONFIG.PENAL_CODES)
+    attenuants = normalizeIdList(attenuants, LEGISLATION_CONFIG.ATTENUANTS_FACTORS)
+    aggravants = normalizeIdList(aggravants, LEGISLATION_CONFIG.AGGRAVATING_FACTORS)
+
+    if #crimes == 0 then
+        return false, LANGUAGE.ERROR_NO_CRIME_INFORMED
     end
 
     local penaltyPayload = calculateOcurrencePayload(crimes, attenuants, aggravants)
-    local consultResult = executeAdapter(
-        'executeSync',
-        'INSERT INTO cc_mdt_ocurrences (officer_id, suspect_id, suspect_description, crimes, attenuants, aggravants, photo_url, payload, is_finished) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        {
-            officerId,
-            suspectId,
-            suspectDescription or 'Não fornecida',
-            json.encode(crimes),
-            json.encode(attenuants or {}),
-            json.encode(aggravants or {}),
-            photoURL or nil,
-            json.encode(penaltyPayload),
-            0 -- is_finished
-        }
-    )
-
-    if not consultResult then 
-        return false, 'Erro no DB.' 
-    end
-
-    local ocurrenceId = consultResult.insertId or self:GetLastId(officerId, suspectId)
+    local ocurrenceId = executeAdapter('createOcurrence', officerId, suspectId, suspectDescription, crimes, attenuants, aggravants, photoURL, penaltyPayload)
 
     if not ocurrenceId then
-        return false, 'Erro ao recuperar ID da ocorrência criada.'
+        return false, LANGUAGE.ERROR_OCCURRENCE_CREATED_ID
     end
 
     self.cache[ocurrenceId] = {
-        id                 = ocurrenceId,
-        officerId          = officerId,
-        suspectId          = suspectId,
+        id = ocurrenceId,
+        officerId = officerId,
+        suspectId = suspectId,
         suspectDescription = suspectDescription,
-        crimes             = crimes,
-        attenuants         = attenuants or {},
-        aggravants         = aggravants or {},
-        photoURL           = photoURL,
-        payload            = penaltyPayload,
-        isFinished         = false,
-        createdAt          = os.time()
+        crimes = crimes,
+        attenuants = attenuants or {},
+        aggravants = aggravants or {},
+        photoURL = photoURL,
+        payload = penaltyPayload,
+        isFinished = false,
+        createdAt = os.time()
     }
 
     return true, ocurrenceId
@@ -128,7 +123,7 @@ function Ocurrences:Update(ocurrenceId, newSuspectId, newCrimes)
     local cached = self:Get(ocurrenceId)
 
     if not cached then
-        return false, 'Ocorrência não encontrada.'
+        return false, LANGUAGE.ERROR_OCCURRENCE_NOT_FOUND
     end
 
     local params = {}
@@ -144,13 +139,20 @@ function Ocurrences:Update(ocurrenceId, newSuspectId, newCrimes)
     local crimesChanged = false
 
     if newCrimes then
+        newCrimes = normalizeIdList(newCrimes, LEGISLATION_CONFIG.PENAL_CODES)
+
+        if #newCrimes == 0 then
+            return false, LANGUAGE.ERROR_NO_CRIME_INFORMED
+        end
+
+        cached.crimes = cached.crimes or {}
+
         if #newCrimes ~= #cached.crimes then
             crimesChanged = true
         else
             for i, id in ipairs(newCrimes) do
                 if cached.crimes[i] ~= id then
                     crimesChanged = true
-
                     break
                 end
             end
@@ -166,23 +168,18 @@ function Ocurrences:Update(ocurrenceId, newSuspectId, newCrimes)
         setClauses[#setClauses + 1] = 'payload = ?'
         params[#params + 1] = json.encode(newPayload)
 
-        updates.crimes  = newCrimes
+        updates.crimes = newCrimes
         updates.payload = newPayload
     end
 
     if #setClauses == 0 then
-        return false, 'Nenhuma alteração detectada.'
+        return false, LANGUAGE.ERROR_NO_CHANGES_DETECTED
     end
 
-    params[#params + 1] = ocurrenceId
-
-    local success = executeAdapter('executeSync',
-        'UPDATE cc_mdt_ocurrences SET ' .. table.concat(setClauses, ', ') .. ' WHERE id = ?',
-        params
-    )
+    local success = executeAdapter('updateOcurrence', ocurrenceId, setClauses, params)
 
     if not success then
-        return false, 'Erro ao atualizar ocorrência no banco de dados.'
+        return false, LANGUAGE.ERROR_OCCURRENCE_UPDATE_DB
     end
 
     for key, value in pairs(updates) do
@@ -194,14 +191,10 @@ end
 
 function Ocurrences:Delete(ocurrenceId)
     if not ocurrenceId or not self.cache[ocurrenceId] then
-        return false, 'Ocorrência não encontrada.'
+        return false, LANGUAGE.ERROR_OCCURRENCE_NOT_FOUND
     end
 
-    local success = executeAdapter('executeSync', 'DELETE FROM cc_mdt_ocurrences WHERE id = ?', { ocurrenceId })
-
-    if not success then
-        return false, 'Erro ao deletar ocorrência do banco de dados.'
-    end
+    executeAdapter('deleteOcurrence', ocurrenceId)
 
     self.cache[ocurrenceId] = nil
 

@@ -22,22 +22,16 @@ function closeInterface()
     })
 end
 
-function updateUserData(playerId, playerName, policeRank, inService)
-    local avatarURL
-    local headshotTxd = Headshot:GetPedHeadshot()
-
-    if headshotTxd and type(headshotTxd) == 'string' then
-        avatarURL = 'https://nui-img/'..tostring(headshotTxd)..'/'..tostring(headshotTxd)
-    end
-
+function updateUserData(playerId, playerName, policeRank, inService, avatarURL, canManageOfficers)
     SendNUIMessage({
-        action = "updateUserData",
+        action = 'updateUserData',
         data = {
             id = playerId,
             name = playerName, 
             policeRank = policeRank,
             avatarURL = avatarURL, 
-            inService = inService
+            inService = inService, 
+            canManageOfficers = canManageOfficers
         }
     })
 end
@@ -50,23 +44,27 @@ RegisterNUICallback('removeFocus', function(data, callBack)
     callBack({})
 end)
 
+RegisterNUICallback('nuiLoaded', function(data, callBack)
+    callBack({})
+end)
+
+RegisterNUICallback('getServerLogo', function(data, callBack)
+    callBack({
+        logoURL = GENERAL_CONFIG.SERVER_LOGO_URL
+    })
+end)
+
 RegisterNUICallback('getUserData', function(data, callback)
     local playerEntries = apiServer.getPlayerData()
-    local playerId, playerName, policeRanking, inService = table.unpack(playerEntries)
-
-    local avatarURL
-    local headshotTxd = Headshot:GetPedHeadshot()
-
-    if headshotTxd and type(headshotTxd) == 'string' then
-        avatarURL = 'https://nui-img/'..tostring(headshotTxd)..'/'..tostring(headshotTxd)
-    end
+    local playerId, playerName, policeRanking, inService, avatarURL, canManageOfficers = table.unpack(playerEntries)
 
     callback({
         id = playerId,
         name = playerName, 
         policeRank = policeRanking,
         avatarURL = avatarURL, 
-        inService = inService
+        inService = inService, 
+        canManageOfficers = canManageOfficers
     })
 end)
 
@@ -121,3 +119,5 @@ RegisterNUICallback('markCds', function(data, callback)
 
     callback({})
 end)
+
+RegisterNetEvent('cc_mdt:updateUserData', updateUserData)
